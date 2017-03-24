@@ -17,8 +17,8 @@ Copy the three files:  ColorSelector.htm, ColorSelector.css, and XmlColors.js to
 directory and run ColorSelector.htm.
 
 On Windows you can create a shortcut to run this with Chrome as a standard looking app
-(simple frame, no tabs, etc).  Just create the shorcut and set the target field accordingly,
-substituting {$PATH} to point to the file.
+(simple frame, no tabs, etc).  Just create the shorcut and set the target field as follows,
+substituting {$PATH} to point to the location of ColorSelector.htm on your machine:
 
 "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --app="file://{$PATH}\ColorSelector.htm"
 
