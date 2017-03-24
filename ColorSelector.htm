@@ -1,0 +1,594 @@
+
+<html><title>Color Selector 4.21</title>
+
+<!-- "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --app="file://D:\User\fcg\WebDevel\Colors 4.2\ColorSelector.htm" -->
+
+<!---------------------------------------------------------------
+ *
+ * File     : ColorSelector.htm
+ * Author   : Frank Guida
+ *
+ * Description
+ * ~~~~~~~~~~~
+ *
+ * Color selector using file access on chrome.
+ *
+ * Functions
+ * ~~~~~~~~~
+ *
+ *   InitializePage
+ *   Window_Resize
+ *  
+ *   ReadColorData
+ *  
+ *   RGBtoHSL
+ *   MinInt
+ *   MaxInt
+ *  
+ *   ClearTable
+ *   AddCol
+ *   ResizeTableCols
+ *   SortTable
+ *   SearchRows
+ *
+ *   tblColors_Click
+ *   tblHead_Click
+ *   trFooter_Click
+ *   
+ *   SetColor1
+ *   SetColor2
+ *
+ * -------------------------------------------------------------->
+
+<link rel="stylesheet" type="text/css" href="ColorSelector.css">
+
+<script language="JavaScript" src="XmlColors.js"></script>
+
+<script>
+
+// ==============================================================
+// Module Variables
+
+var mColor1 = null;
+var mColor2 = null;
+
+// --------------------------------------------------------------
+
+function InitializePage()
+{
+  // resizeTo(650, 600);
+
+  tblColors.addEventListener("click", tblColors_Click, false);
+  tblHead.addEventListener("click", tblHead_Click, false);
+  trFooter.addEventListener("click", trFooter_Click, false);
+
+  ReadColorData();
+}
+
+// --------------------------------------------------------------
+
+function Window_Resize()
+{
+  var wd = document.body.clientWidth - 12;
+  var ht = document.body.clientHeight - 12;
+  var minColWds = new Array(0, 0, 60, 100, 0, 0, 0, 0, 0, 0, 0);
+
+  tblMainCont.style.width = wd;
+
+  spnScheme.style.width = tblHead.rows[0].cells[3].offsetLeft - 6 - 3;
+  spnSample.style.width = wd - spnScheme.offsetWidth - 6 - 8 - 5;
+
+  divData.style.height = ht -
+    trTitle.offsetHeight -
+    tblHead.offsetHeight -
+    trStatus.offsetHeight -
+    trFooter.offsetHeight - 7;
+
+  ResizeTableCols(tblHead, tblColors, minColWds, 2);
+}
+
+// --------------------------------------------------------------
+
+function ReadColorData()
+{
+  var i, n;
+  var resType = XPathResult.ORDERED_NODE_SNAPSHOT_TYPE;
+  var xpath, snap, item;
+  var strColor, intColor, hsl;
+  var row, col;
+  var xmlDoc = GetXmlColorDoc();
+
+  if (optHTML.checked)
+    xpath = "/Colors/ColorSet[@name='HTML Colors']/color";
+
+  if (optX11.checked)
+    xpath = "/Colors/ColorSet[@name='X11 Colors']/color";
+
+  snap = xmlDoc.evaluate(xpath, xmlDoc, null, resType, null);
+
+  n = snap.snapshotLength;
+
+  for (i=0; i<n; i++)
+  {
+    item = snap.snapshotItem(i);
+
+    strColor = item.getAttribute("value");
+    intColor = parseInt(strColor.substr(1,6), 16);
+
+    row = tblColors.insertRow();
+    row.className = "Normal";
+
+    // Row #
+    AddCol(row, "AlignRt", i + 1);
+
+    // Name
+    AddCol(row, "Name", item.getAttribute("name"));
+
+    // Swatch
+    col = AddCol(row, "Swatch", " ");
+    col.style.background = strColor;
+
+    // Sample
+    col = AddCol(row, "AlignCt", "Sample Text");
+    col.style.color = strColor;
+
+    // Hex
+    AddCol(row, "AlignCt Lucida", strColor);
+
+    // RGB
+    AddCol(row, "AlignRt RGB", (intColor >> 16) & 0xFF);
+    AddCol(row, "AlignRt RGB", (intColor >> 8) & 0xFF);
+    AddCol(row, "AlignRt RGB", (intColor >> 0) & 0xFF);
+
+    // HSL
+    hsl = RGBtoHSL(intColor);
+    AddCol(row, "AlignRt HSL", hsl[0]);
+    AddCol(row, "AlignRt HSL", hsl[1]);
+    AddCol(row, "AlignRt HSL", hsl[2]);
+  }
+
+  Window_Resize();
+}
+
+// --------------------------------------------------------------
+// Take an integer color value (e.g. parsed from #RRGGBB), extract
+// the component colors and return a converted HSL[3] array. 
+
+function RGBtoHSL(color)
+{
+  var R, G, B;
+  var min, max, sum, diff;
+  var q, hue, sat, lgt;
+  var res = new Array(3);
+
+  R = (color >> 16) & 0xFF;
+  G = (color >> 8) & 0xFF;
+  B = (color >> 0) & 0xFF;
+
+  min = MinVal(R, G, B);
+  max = MaxVal(R, G, B);
+  sum = min + max;
+  diff = max - min;
+
+  hue = sat = 0;
+  lgt = sum / 510;
+  
+  if (diff > 0)
+  {
+    if (lgt <= 0.5)
+      sat = diff / sum;
+    else
+      sat = diff / (510 - sum);
+
+    q = 1 / (6 * diff);
+
+    switch (max)
+    {
+    case R:
+      if (G < B)
+        hue = 1 + q * (G - B);
+      else
+        hue = q * (G - B);
+      break;
+
+    case G:
+      hue = 1/3 + q * (B - R);
+      break;
+
+    case B:
+      hue = 2/3 + q * (R - G);
+      break;
+    }
+  }
+
+  with (Math)
+  {
+    res[0] = round(hue*255);
+    res[1] = round(sat*255);
+    res[2] = round(lgt*255);
+  }
+
+  return res;
+}
+
+// --------------------------------------------------------------
+
+function MinVal(a, b, c)
+{
+  var m = (a < b) ? a : b;
+
+  return (m < c) ? m : c;
+}
+
+// --------------------------------------------------------------
+
+function MaxVal(a, b, c)
+{
+  var m = (a > b) ? a : b;
+
+  return (m > c) ? m : c;
+}
+
+// --------------------------------------------------------------
+
+function ClearTable(tbl)
+{
+  while (tbl.rows.length > 0)
+    tbl.deleteRow(0);
+
+  tbl.FG_Row = null;
+  tbl.BG_Row = null;
+  tbl.selectedRow = null;
+}
+
+// --------------------------------------------------------------
+
+function AddCol(row, cls, text)
+{
+  var col = row.insertCell();
+
+  col.className = cls;
+  col.innerText = text;
+
+  return col;
+}
+
+// --------------------------------------------------------------
+// ResizeTableCols
+//
+// Align the column widths of the heading table 'head' with the
+// the data table 'data', using the array 'minWds' for the minimum
+// column widths. 'expCol' is the index of the column to have the
+// expandable width.
+//
+// The headings table should have one more column than the data
+// table. The last col width will be set to the scrollbar width.
+//
+// For this design, the heading table has no cell padding. The col
+// seperator is a 1px right side border. Thus, the first and last
+// cols widths in the heading table must be tweaked by 1px.
+//
+// This function is closely couped to the CSS, so keep them in sync.
+// 
+function ResizeTableCols(head, data, minWds, expCol)
+{
+  var i, n;
+  var w1, w2, wd;
+  var cellPad  = 12;                    // total cell padding
+  var scrollWd;                         // scrollbar width
+  var setWds = new Array();             // col widths values
+
+  if (head == undefined || data == undefined) return;
+
+  if (data.rows.length == 0) return;
+
+  // Find out if the scrollbar is present, and its width.
+  data.style.width = "100%";
+  scrollWd = data.parentElement.offsetWidth - data.offsetWidth;
+
+  // Make tables as small as possible.  This will set the column
+  // widths to be just big enough for their contents + padding.
+
+  head.style.width = 0;
+  data.style.width = 0;
+
+  n = data.rows[0].cells.length;
+
+  // Loop through the cols and find the minimum width to set.
+
+  for (i=0; i<n; i++)
+  {
+    wd = minWds[i];
+
+    head.rows[0].cells[i].style.width = "";
+    data.rows[0].cells[i].style.width = "";
+    w1 = head.rows[0].cells[i].offsetWidth;
+    w2 = data.rows[0].cells[i].offsetWidth;
+
+    if (w1 > wd) wd = w1;
+    if (w2 > wd) wd = w2;
+    setWds[i] = wd;
+  }
+
+  // Set the widths found above, except for the expanding col.
+
+  for (i=0; i<n; i++)
+  {
+    if (i == expCol) continue;
+
+    head.rows[0].cells[i].style.width = setWds[i] - cellPad;
+    data.rows[0].cells[i].style.width = setWds[i] - cellPad;
+  }
+
+  // Add an extra pix to the first heading col.
+  head.rows[0].cells[0].style.width = setWds[0] - cellPad + 1;
+
+  // Nix the padding and border for the scrollbar col.
+  head.rows[0].cells[n].style.padding = 0;
+  head.rows[0].cells[n].style.borderWidth = 0;
+
+  // Set the scrollbar colheading text and width if its present.
+  head.rows[0].cells[n].innerText = (scrollWd > 0 ? " " : "");
+  head.rows[0].cells[n].style.width = scrollWd;
+
+  head.style.width = "100%";            // expand to fill container
+  data.style.width = "100%";
+}
+
+// --------------------------------------------------------------
+// Sort table 'tbl' with insertion sort on column 'col',
+// direction 'dir' = 1) asc, 2) desc
+
+function SortTable(tbl, col, dir)
+{
+  var i, n;
+  var targ, posn, text;
+  var t = tbl.firstChild;
+
+  n = tbl.rows.length;
+
+  for (i=1; i < n; i++)
+  {
+    targ = tbl.rows[i].cells[col].innerText;
+
+    if (!isNaN(targ))
+      targ = eval(targ);
+
+    posn = SearchRows(tbl, 0, i-1, col, targ, dir)
+    text = tbl.rows[posn].cells[col].innerText;
+
+    if ((dir == 1 && targ < text) || (dir == 2 && targ > text))
+      t.insertBefore(tbl.rows[i], tbl.rows[posn]);
+    else
+      if (posn < n - 1)
+        t.insertBefore(tbl.rows[i], tbl.rows[posn + 1]);
+  }
+
+  spnScheme.innerText = "Sorting... done";
+}
+
+// --------------------------------------------------------------
+// Search rows[x1..x2], column 'col' of the given table 'tbl' for
+// a match on target 'targ'. Direction 'dir' = 1) asc, 2) desc
+//
+// Returns the index of the matching row, or the value of 'mid'
+// where the search terminated, which is the closest match.
+//
+function SearchRows(tbl, x1, x2, col, targ, dir)
+{
+	var pos = -1;
+	var mid, text;
+
+  if (x1 == x2)
+    return x1;
+
+	while (x1 <= x2 && pos == -1)
+	{
+	  mid = parseInt((x1 + x2) / 2);
+
+    text = tbl.rows[mid].cells[col].innerText;
+
+    if (!isNaN(text))
+      text = eval(text);
+
+    // Adjust the search zone base on the sort direction and
+    // if the target is < or > the text at posn and not a match.
+
+    if ((dir == 1 && targ < text) || (dir == 2 && targ > text))
+      x2 = mid - 1;                     // search left half
+    else if ((dir == 1 && targ > text) || (dir == 2 && targ < text))
+      x1 = mid + 1;                     // search right half
+    else
+      pos = mid;                        // match found
+	}
+
+	return (pos > -1 ? pos : mid);
+}
+
+// --------------------------------------------------------------
+
+function tblColors_Click()
+{
+  var se = event.srcElement;
+  var x, s, c, v;
+
+  if (se.tagName != "TD")
+    return;
+
+  x = se.parentElement.rowIndex;
+  c = tblColors.rows[x].cells[1].innerText;
+  v = tblColors.rows[x].cells[4].innerText;
+
+  if (se.cellIndex == 1)
+  {
+    SetColor1(c, v);
+    s = tblColors.FG_Row;
+
+    if (s != null)
+      tblColors.rows[s].cells[0].style.backgroundColor = "";
+  
+    tblColors.FG_Row = x;
+    tblColors.rows[x].cells[0].style.backgroundColor = "Aquamarine";
+  }
+
+  if (se.cellIndex == 2)
+  {
+    SetColor2(c, v);
+    s = tblColors.BG_Row;
+
+    if (s != null)
+      tblColors.rows[s].cells[1].style.backgroundColor = "";
+  
+    tblColors.BG_Row = x;
+    tblColors.rows[x].cells[1].style.backgroundColor = "Aquamarine";
+  }
+}
+
+// --------------------------------------------------------------
+
+function tblHead_Click()
+{
+  var se = event.srcElement;
+  var x;
+
+  if (se.tagName != "TD") return;
+
+  x = tblColors.FG_Row;
+
+  if (x != null)
+    tblColors.rows[x].cells[0].style.backgroundColor = "";
+
+  x = tblColors.BG_Row;
+
+  if (x != null)
+    tblColors.rows[x].cells[1].style.backgroundColor = "";
+
+  tblColors.FG_Row = null;
+  tblColors.BG_Row = null;
+
+  x = se.cellIndex;
+
+  spnScheme.innerText = "Sorting...";
+  setTimeout("SortTable(tblColors,"+ x +", 1)", 100);
+}
+
+// --------------------------------------------------------------
+
+function trFooter_Click()
+{
+  if (event.srcElement.tagName == "INPUT")
+  {
+    ClearTable(tblColors);
+    ReadColorData();
+  }
+
+  if (event.srcElement.tagName == "BUTTON")
+    ;
+}
+
+// --------------------------------------------------------------
+//
+function SetColor1(name, value)
+{
+  mColor1 = name;
+  spnSample.style.color = value;
+  spnScheme.innerText = mColor1 +" on "+ mColor2;
+}
+
+// --------------------------------------------------------------
+//
+function SetColor2(name, value)
+{
+  var i, n;
+  var rows = tblColors.rows;
+  
+  n = rows.length;
+
+  for (i=0; i<n; i++)
+    rows[i].cells[3].style.background = value;
+
+  mColor2 = name;
+  spnSample.style.background = value;
+  spnScheme.innerText = mColor1 +" on "+ mColor2;
+}
+
+// --------------------------------------------------------------
+
+</script>
+
+<body onload=InitializePage() onresize=Window_Resize()>
+
+<table id=tblMainCont class=Container cellSpacing=1>
+
+  <!-- Table Title -->
+
+  <tr id=trTitle class=TableTitle>
+    <td class=TableTitle>HTML / X11 Color Selector</td>
+  </tr>
+
+  <!-- Column Headings -->
+
+  <tr>
+    <td style="padding:0;">
+      <table id=tblHead cellSpacing=0>
+        <tr>
+          <td class=HeadC>#</td>
+          <td class=HeadL>Name</td>
+          <td class=HeadC>Color</td>
+          <td class=HeadC>Sample</td>
+          <td class=HeadC>Hex</td>
+          <td class=HeadC>R</td>
+          <td class=HeadC>G</td>
+          <td class=HeadC>B</td>
+          <td class=HeadC>H</td>
+          <td class=HeadC>S</td>
+          <td class="HeadC Last">L</td>
+          <td class=HeadC>&nbsp</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Table Contents -->
+
+  <tr>
+    <td class=Content>
+      <div id=divData class=ScrollList>
+        <table id=tblColors cellSpacing=1></table>
+      </div>
+    </td>
+  </tr>
+
+  <!-- Status Area -->
+
+  <tr id=trStatus class=StatusArea>
+    <td id=tdStatus class=Status>
+      <span id=spnScheme class=Scheme>Color / Background</span>
+      <span id=spnSample class=Sample>
+        Sample sly fox jumping over the lazy brown dog
+      </span>
+    </td>
+  </tr>
+
+  <!-- Table Footer -->
+
+  <tr id=trFooter class=TableFooter>
+    <td>
+      <div class=ContSet>
+        <span class=Label>Colors:</span>
+        <input id=optHTML name=Color type="radio" checked/>
+          <span class=Label>HTML</span>
+        <input id=optX11 name=Color type="radio"/>
+          <span class=Label>X11</span>
+      </div>
+      <div>
+        <button>Copy #</button>
+        <button>Copy V</button>
+      </div>
+    </td>
+  </tr>
+
+</table>
+
+</body>
+</html>

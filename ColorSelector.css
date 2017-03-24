@@ -1,0 +1,174 @@
+
+/* ------------------------------------------------------------ */
+/*
+ * File	    : ColorSelector.css
+ * Author   : Frank Guida
+ *
+ * ------------------------------------------------------------ */
+
+body
+{
+  margin : 6;
+  overflow : hidden;
+  background : Snow;
+}
+
+iframe
+{
+  visibility: hidden;
+  position: absolute;
+  top: 0; left: 0;
+  height: 0; width: 0;
+  border: none;
+}
+
+/* ------------------------------------------------------------ */
+
+div.ScrollList
+{
+  background: Gainsboro;
+  overflow-x: hidden;
+}
+
+div.ContSet
+{
+  position : absolute;
+  height : 18;
+  margin : 1 0 0 4;
+}
+
+span
+{
+  display : inline-block;
+}
+
+span.Scheme
+{
+  width : 200;
+  height : 12;
+  padding-bottom : 2;
+}
+
+span.Sample
+{
+  margin-left : 0;
+  height : 12;
+  padding : 2 0 2 6;
+}
+
+span.Label
+{
+  font : 11px 'Verdana';
+  color : #505050;
+  margin-top : 2;
+}
+
+input
+{
+  vertical-align : top;
+  margin-right : 1;
+}
+
+button
+{
+  width : 50;
+  height : 18;
+  margin : 1 2 1 0;
+  padding : 0 0 1 0;
+  color : #606060;
+  font : 11px 'Verdana';
+}
+
+object{ display : none; }
+
+/* ------------------------------------------------------------ */
+
+table
+{
+  width : 100%;
+  font : 11px Tahoma;
+}
+
+table.Container
+{
+  position : absolute;
+  top : 6;
+  background : #888888;
+  box-shadow : 1px 1px 1px Plum; 
+}
+
+tr.TableTitle
+{
+  background : #bec5e7;
+  font : bold 11px Verdana;
+  height : 18;
+}
+
+tr.StatusArea
+{
+  color : #505050;
+  background : #F0FFFF;
+  height : 16;
+}
+
+tr.TableFooter
+{
+  background : #bec5e7;
+  text-align : right;
+}
+
+tr.Normal, tr.Selected, tr.MouseOver
+{
+  height : 14;
+  font : 11px Verdana;
+  color : #606060;
+}
+
+tr.Normal    {background : #F7F8FD;}
+tr.MouseOver {background : #EEE9E9;}
+tr.Selected  {background : #E0DDD2;}
+
+
+td.TableTitle
+{
+  padding-left : 4;
+}
+
+td.Content
+{
+  vertical-align : top;
+  padding : 0;
+}
+
+td.HeadL, td.HeadC
+{
+  font : 11px Verdana;
+  background : #d1d6f0;
+  padding : 0 6 1 6;
+  white-space: nowrap;
+  border-right : 1px solid #888888;
+}
+
+td.HeadC{ text-align : center; }
+td.Last{ border-color : #BBBBBB; }
+
+td.AlignLf, td.AlignCt, td.AlignRt, td.Name, td.Swatch
+{
+  padding : 1 6 1 6;
+  font-size : 10px;
+  text-align : left;
+}
+
+td.AlignCt{ text-align : center; }
+td.AlignRt{ text-align : right; }
+
+td.Status{ padding : 2 0 2 6; }
+
+td.RGB, td.HSL
+{
+  font-family : Lucida Console;
+  vertical-align : bottom;
+}
+
+td.RGB{ color : OrangeRed; }
+td.HSL{ color : MediumOrchid; }
