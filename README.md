@@ -9,7 +9,7 @@ Chrome will allow it if you launch with the --allow-file-access-from-files optio
 has to be the first web page launched for this to work.
 
 With a little reformatting (double to single quotes, and javascript newline escapes) you can
-create a pseudo xml data island, as done in the XmlColors.js file, that can be included in the
+create a pseudo xml data island, as done in the XmlColors.js file, that can be linked/included in the
 main file.
 
 # Usage
